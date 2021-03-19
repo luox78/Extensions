@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -15,10 +14,11 @@ namespace Extension.EntityFramework
 
         public static IServiceCollection AddReadonlyDbContextPool<TContext>(
             this IServiceCollection sc,
-            Func<IServiceProvider, DbContextOptions<TContext>> optionFunc)
+            Action<IServiceProvider, DbContextOptionsBuilder> optionAction, 
+            int poolSize = 32)
             where TContext : DbContext
         {
-            sc.AddSingleton(typeof(DbContextPool<TContext>), sp => new DbContextPool<TContext>(optionFunc.Invoke(sp)));
+            sc.AddPooledDbContextFactory<TContext>(optionAction, poolSize);
             sc.TryAddSingleton(typeof(IPooledReadonlyDbContext<>), typeof(PooledReadonlyDbContext<>));
 
             return sc;
